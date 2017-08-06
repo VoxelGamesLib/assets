@@ -1,5 +1,14 @@
 package com.voxelgameslib.assets;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.mineskin.MineskinClient;
+import org.mineskin.Model;
+import org.mineskin.SkinOptions;
+import org.mineskin.Visibility;
+import org.mineskin.data.Skin;
+import org.mineskin.data.SkinCallback;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -10,13 +19,18 @@ import org.xml.sax.SAXException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.imageio.ImageIO;
@@ -29,6 +43,8 @@ public class Test {
 
 
     public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
         File inputFile = new File("src\\main\\resources\\skulls\\template.ora");
         File outputFolder = new File("src\\main\\resources\\skulls\\generated\\");
         Font font = new Font("6px2bus", Font.PLAIN, 6);
@@ -39,6 +55,38 @@ public class Test {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        MineskinClient mineskinClient = new MineskinClient(executor);
+        File[] files = outputFolder.listFiles();
+        Arrays.stream(files).parallel().filter(file -> file.getName().endsWith(".png")).forEach(file -> {
+            System.out.println("uploading " + file.getName());
+            mineskinClient.generateUpload(file, SkinOptions.create(file.getName().replace(".png", ""), Model.DEFAULT, Visibility.PRIVATE), new SkinCallback() {
+                @Override
+                public void done(Skin skin) {
+                    try {
+                        System.out.println("saving " + file.getName());
+                        File out = new File(new File(outputFolder, "skins"), skin.name + ".json");
+                        if (out.exists()) out.createNewFile();
+                        FileWriter fw = new FileWriter(out);
+                        gson.toJson(skin, fw);
+                        fw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void exception(Exception exception) {
+                    exception.printStackTrace();
+                }
+            });
+        });
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -52,7 +100,6 @@ public class Test {
     }
 
     private static void makeFile(File inputFile, File outputFile, Color[] backgroundColors, Color[] textColors, Font font, char[] text) throws Exception {
-        //Messages.setMessageHandler(new GUIMessageHandler());
         Map<Layer, BufferedImage> composition = readOpenRaster(inputFile);
 
         BufferedImage finalImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
