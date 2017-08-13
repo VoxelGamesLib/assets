@@ -63,6 +63,7 @@ public class Test {
         Arrays.stream(files).parallel().filter(file -> file.getName().endsWith(".png")).forEach(file -> {
             System.out.println("uploading " + file.getName());
             mineskinClient.generateUpload(file, SkinOptions.create(file.getName().replace(".png", ""), Model.DEFAULT, Visibility.PRIVATE), new SkinCallback() {
+
                 @Override
                 public void done(Skin skin) {
                     try {
@@ -240,6 +241,7 @@ public class Test {
     }
 
     static class Layer implements Comparable {
+
         String name;
         int x;
         int y;
