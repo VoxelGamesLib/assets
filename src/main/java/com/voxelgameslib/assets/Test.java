@@ -45,8 +45,8 @@ public class Test {
     public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        File inputFile = new File("src\\main\\resources\\skulls\\template.ora");
-        File outputFolder = new File("src\\main\\resources\\skulls\\generated\\");
+        File inputFile = new File("tools\\assets\\src\\main\\resources\\skulls\\template.ora");
+        File outputFolder = new File("tools\\assets\\src\\main\\resources\\skulls\\generated\\");
         Font font = new Font("6px2bus", Font.PLAIN, 6);
 
         for (char text : new char[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}) {
@@ -57,35 +57,65 @@ public class Test {
             }
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        ExecutorService executor = Executors.newFixedThreadPool(30);
         MineskinClient mineskinClient = new MineskinClient(executor);
         File[] files = outputFolder.listFiles();
-        Arrays.stream(files).parallel().filter(file -> file.getName().endsWith(".png")).forEach(file -> {
-            System.out.println("uploading " + file.getName());
-            mineskinClient.generateUpload(file, SkinOptions.create(file.getName().replace(".png", ""), Model.DEFAULT, Visibility.PRIVATE), new SkinCallback() {
+        for (File file : files) {
+            if (file.getName().endsWith(".png")) {
+                File skins = new File(outputFolder, "skins");
+                if(!skins.exists()) skins.mkdirs();
+                File out = new File(skins, file.getName().replace(".png", "") + ".json");
+                if(out.exists()) {
+                    System.out.println(file.getName() + " exists, skipping");
+                    continue;
+                }else{
+                    System.out.println("uploading " + file.getName());
+                }
+                mineskinClient.generateUpload(file, SkinOptions.create(file.getName().replace(".png", ""), Model.DEFAULT, Visibility.PRIVATE), new SkinCallback() {
 
-                @Override
-                public void done(Skin skin) {
-                    try {
-                        System.out.println("saving " + file.getName());
-                        File out = new File(new File(outputFolder, "skins"), skin.name + ".json");
-                        if (out.exists()) out.createNewFile();
-                        FileWriter fw = new FileWriter(out);
-                        gson.toJson(skin, fw);
-                        fw.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    @Override
+                    public void done(Skin skin) {
+                        try {
+                            System.out.println("saving " + file.getName());
+                            FileWriter fw = new FileWriter(out);
+                            gson.toJson(skin, fw);
+                            fw.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
 
-                @Override
-                public void exception(Exception exception) {
-                    exception.printStackTrace();
-                }
-            });
-        });
+                    @Override
+                    public void exception(Exception exception) {
+                        exception.printStackTrace();
+                    }
+
+                    @Override
+                    public void uploading() {
+                        System.out.println("uploading.......  " + file.getName());
+                    }
+
+                    @Override
+                    public void error(String errorMessage) {
+                        System.out.println(file.getName() + " error: " + errorMessage);
+                    }
+
+                    @Override
+                    public void waiting(long delay) {
+                        System.out.println(file.getName() + " waiting for " + delay);
+                    }
+
+                    @Override
+                    public void parseException(Exception exception, String body) {
+                        System.out.println(file.getName() + " parse exception for " + body);
+                    }
+                });
+            }
+        }
         try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
+            System.out.println("waiting for termination");
+            executor.awaitTermination(100, TimeUnit.MINUTES);
+            System.out.println("done");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
