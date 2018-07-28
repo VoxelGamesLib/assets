@@ -2,7 +2,6 @@ package com.voxelgameslib.assets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import org.mineskin.MineskinClient;
 import org.mineskin.Model;
@@ -20,25 +19,18 @@ import org.xml.sax.SAXException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.imageio.ImageIO;
@@ -158,11 +150,11 @@ public class Test {
 
     private static void makeFile(File inputFile, File outputFile, Color backgroundColor, Color textColor, Font font, char text) throws Exception {
         makeFile(inputFile,
-            outputFile,
-            new Color[]{backgroundColor, backgroundColor, backgroundColor, backgroundColor, backgroundColor, backgroundColor},
-            new Color[]{textColor, textColor, textColor, textColor, textColor, textColor},
-            font,
-            new char[]{text, text, text, text, text, text});
+                outputFile,
+                new Color[]{backgroundColor, backgroundColor, backgroundColor, backgroundColor, backgroundColor, backgroundColor},
+                new Color[]{textColor, textColor, textColor, textColor, textColor, textColor},
+                font,
+                new char[]{text, text, text, text, text, text});
     }
 
     private static void makeFile(File inputFile, File outputFile, Color[] backgroundColors, Color[] textColors, Font font, char[] text) throws Exception {
@@ -273,7 +265,7 @@ public class Test {
 
     private static BufferedImage toSysCompatibleImage(BufferedImage input) {
         GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
-            .getDefaultScreenDevice().getDefaultConfiguration();
+                .getDefaultScreenDevice().getDefaultConfiguration();
 
         if (input.getColorModel().equals(gc.getColorModel())) {
             return input;
@@ -301,8 +293,8 @@ public class Test {
             return null;
         }
         return fileName
-            .substring(lastIndex + 1, fileName.length())
-            .toLowerCase();
+                .substring(lastIndex + 1, fileName.length())
+                .toLowerCase();
     }
 
     static class Layer implements Comparable {
