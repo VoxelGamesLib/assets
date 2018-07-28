@@ -1,2 +1,15 @@
-.gradle/
-build/
+# Maven
+target/
+# IDEA
+*.iml
+.idea/
+
+# Java
+*.jar
+
+# ignore ci stuff
+/deploy-stuff
+.gradletasknamecache
+
+# these are generated and are unneccesarry
+package-info.java
